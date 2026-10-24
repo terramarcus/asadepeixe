@@ -346,7 +346,7 @@ function spaceBackground(uTime) {
 
 // calm: para quem prefere movimento reduzido — o cardume nada mais devagar, mas continua vivo e reagindo ao mouse
 // style: 'neon' (contornos de luz com rastro, sobre o universo) ou 'realista' (carpas sólidas com escamas e reflexos)
-export function createSchool(canvas, { calm = false, style = 'neon', count = null, size = 0.3, cameraZ = 14, showcase = null } = {}) {
+export function createSchool(canvas, { calm = false, style = 'neon', count = null, size = 1.3, cameraZ = 14, showcase = null } = {}) {
   // showcase (só para testes): { yaw, pitch } — um peixe parado no centro, no ângulo pedido
   const NEON = style === 'neon';
   const SPEED = calm ? 0.55 : 1;
@@ -387,7 +387,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   scene.add(glow);
 
   const isSmall = window.matchMedia('(max-width: 760px)').matches;
-  // TESTE: cardume de 5 peixes a 30% do tamanho. Para voltar ao anterior: count 18 (12 no celular) e size 1.
+  // TESTE: cardume de 5 peixes, 30% maiores que o tamanho original (size 1 = original). Antes do teste: count 18 (12 no celular), size 1.
   const COUNT = count ?? 5;
   const SIZE = size;
 
