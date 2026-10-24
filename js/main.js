@@ -48,7 +48,6 @@ let lastY = 0;
 const onScroll = () => {
   const y = window.scrollY;
   header.classList.toggle('is-solid', y > 10);
-  header.classList.toggle('is-hidden', y > lastY && y > 500);
   waFloat.classList.toggle('is-on', y > 700);
   lastY = y;
 };
@@ -267,7 +266,9 @@ document.fonts.ready.then(() => {
 
   // Entrada: o palco cresce e o conteúdo sobe
   gsap.timeline({ defaults: { ease: 'expo.out' } })
-    .from('.hero__top > *, .header', { opacity: 0, y: -10, duration: 0.8 }, 0.3)
+    .from('.hero__top > *', { opacity: 0, y: -10, duration: 0.8 }, 0.3)
+    // o menu só aparece com fade: animar a posição dele deixava o menu deslocado para cima
+    .from('.header', { opacity: 0, duration: 0.8, clearProps: 'all' }, 0.3)
     .from('.stage', { clipPath: 'inset(8% 4% 0% 4% round 28px)', duration: 1.4 }, 0.1)
     .from('.stage__content > *, .stage__tags, .stage__hint', { y: 30, opacity: 0, duration: 1, stagger: 0.08 }, 0.5);
 

@@ -120,11 +120,9 @@ function koiGeometry() {
   }
   leaf(v(0, -0.12, -0.28), v(0, -0.7, -0.8), v(0, 0, 1), 0.26, 0.11);               // anal
 
-  // Barbilhões (bigodes) longos e curvos, saindo da boca
+  // Barbatanas laterais pequenas, logo atrás da cabeça (na altura das guelras)
   for (const s of [1, -1]) {
-    const pts = [v(0.03 * s, -0.06, 0.6), v(0.08 * s, -0.14, 0.61), v(0.13 * s, -0.25, 0.56), v(0.15 * s, -0.37, 0.46), v(0.14 * s, -0.46, 0.36)];
-    const ids = pts.flatMap((q, k) => { const r = 0.012 * (1 - k / pts.length * 0.6); return [add(q.x - r, q.y, q.z, 5, k / (pts.length - 1)), add(q.x + r, q.y, q.z, 5, k / (pts.length - 1))]; });
-    for (let k = 0; k < pts.length - 1; k++) quad(ids[k * 2], ids[k * 2 + 1], ids[k * 2 + 3], ids[k * 2 + 2]);
+    leaf(v(0.07 * s, -0.035, 0.4), v(0.85 * s, -0.25, -0.5), v(0, 0, 1), 0.2, 0.085);
   }
 
   // ----- Asas de pássaro, presas no dorso e abertas para cima em "V" -----
@@ -348,7 +346,7 @@ function spaceBackground(uTime) {
 
 // calm: para quem prefere movimento reduzido — o cardume nada mais devagar, mas continua vivo e reagindo ao mouse
 // style: 'neon' (contornos de luz com rastro, sobre o universo) ou 'realista' (carpas sólidas com escamas e reflexos)
-export function createSchool(canvas, { calm = false, style = 'neon', count = null, cameraZ = 14, showcase = null } = {}) {
+export function createSchool(canvas, { calm = false, style = 'neon', count = null, size = 0.3, cameraZ = 14, showcase = null } = {}) {
   // showcase (só para testes): { yaw, pitch } — um peixe parado no centro, no ângulo pedido
   const NEON = style === 'neon';
   const SPEED = calm ? 0.55 : 1;
@@ -389,7 +387,9 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   scene.add(glow);
 
   const isSmall = window.matchMedia('(max-width: 760px)').matches;
-  const COUNT = count ?? (isSmall ? 12 : 18);
+  // TESTE: cardume de 5 peixes a 30% do tamanho. Para voltar ao anterior: count 18 (12 no celular) e size 1.
+  const COUNT = count ?? 5;
+  const SIZE = size;
 
   const geometry = koiGeometry();
   const phases = new Float32Array(COUNT);
@@ -535,15 +535,17 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   }
 
   // Cardume (boids): cada peixe se alinha com os vizinhos, mantém distância e segue o grupo
-  const CRUISE = 2.6;            // velocidade de cruzeiro
-  const VIEW = 3.2;              // raio de percepção dos vizinhos
+  const TIGHT = Math.min(1, 0.45 + SIZE);        // peixes menores: distâncias e velocidade menores
+  const CRUISE = 2.6 * TIGHT;    // velocidade de cruzeiro
+  const VIEW = 3.2 * TIGHT;      // raio de percepção dos vizinhos
+  const SEP2 = 2.2 * Math.max(SIZE, 0.2); // distância mínima entre vizinhos (ao quadrado)
   // Estado de cada peixe
   const fish = Array.from({ length: COUNT }, () => ({
     pos: new THREE.Vector3(2 + (Math.random() - 0.5) * 3, 1 + (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2),
     vel: new THREE.Vector3(-1, 0.2, 0).multiplyScalar(CRUISE),
     bank: 0,
     phase: Math.random() * Math.PI * 2,
-    scale: 0.65 + Math.random() * 0.3,
+    scale: (0.65 + Math.random() * 0.3) * SIZE,
   }));
 
   const target = new THREE.Vector3(0, 0, 0);
@@ -647,7 +649,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
         n++;
         align.add(o.vel);
         coh.add(o.pos);
-        if (d2 < 2.2 && d2 > 1e-5) { sep.x += dx / d2; sep.y += dy / d2; sep.z += dz / d2; }
+        if (d2 < SEP2 && d2 > 1e-5) { sep.x += dx / d2; sep.y += dy / d2; sep.z += dz / d2; }
       }
       steer.set(0, 0, 0);
       if (n) {
