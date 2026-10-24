@@ -195,7 +195,7 @@ function neonMaterial(uTime) {
         vPart = aPart; vMask = aMask; vCross = aCross; vLocal = position;
         if (aPart > 0.5 && aPart < 1.5) {
           float side = sign(position.x);
-          float ang = (sin(uTime * (5.4 + fract(aPhase * 7.31) * 1.4) + aPhase) * 0.55 - 0.05) * side; // ritmo próprio de cada carpa
+          float ang = (sin(uTime * (2.9 + fract(aPhase * 7.31) * 0.8) + aPhase) * 0.55 - 0.05) * side; // ritmo próprio de cada carpa
           float c = cos(ang), s = sin(ang);
           float px = p.x - ${WING_ROOT_X.toFixed(3)} * side, py = p.y - ${WING_ROOT_Y.toFixed(3)};
           p.x = px * c - py * s + ${WING_ROOT_X.toFixed(3)} * side;
@@ -203,13 +203,13 @@ function neonMaterial(uTime) {
           n.xy = vec2(n.x * c - n.y * s, n.x * s + n.y * c);
         } else {
           float amp = clamp((0.3 - position.z) / 1.25, 0.0, 1.0);
-          p.x += sin(position.z * 5.5 - uTime * 7.0 + aPhase) * 0.1 * pow(amp, 1.6);
+          p.x += sin(position.z * 5.5 - uTime * 3.6 + aPhase) * 0.1 * pow(amp, 1.6);
           if (aPart > 1.5 && aPart < 2.5) {          // véu: os fios esvoaçam, mais nas pontas
             float m = aMask;
-            p.x += sin(m * 4.5 - uTime * 4.2 + aPhase + vCross * 1.5) * 0.24 * m * m;
-            p.y += sin(m * 3.5 - uTime * 3.4 + aPhase * 1.3) * 0.09 * m;
+            p.x += sin(m * 4.5 - uTime * 2.3 + aPhase + vCross * 1.5) * 0.24 * m * m;
+            p.y += sin(m * 3.5 - uTime * 1.9 + aPhase * 1.3) * 0.09 * m;
           } else if (aPart > 4.5 && aPart < 5.5) {   // bigodes balançam de leve
-            p.x += sin(uTime * 2.5 + aPhase) * 0.03 * aMask;
+            p.x += sin(uTime * 1.4 + aPhase) * 0.03 * aMask;
           }
         }
         vec4 mv = modelViewMatrix * instanceMatrix * vec4(p, 1.0);
@@ -325,7 +325,7 @@ function spaceBackground(uTime) {
         vec2 pNeb  = p + look * 0.6  + vec2(0.0, uScroll * 0.48);
         vec2 pMid  = p + look * 0.8  + vec2(0.0, uScroll * 0.36);
         vec2 pNear = p + look * 1.2  + vec2(0.0, uScroll * 0.22);
-        vec3 col = mix(vec3(0.004, 0.008, 0.03), vec3(0.02, 0.035, 0.09), smoothstep(1.1, 0.0, length(pFar - vec2(0.35, 0.2))));
+        vec3 col = mix(vec3(0.0), vec3(0.018, 0.018, 0.02), smoothstep(1.1, 0.0, length(pFar - vec2(0.35, 0.2))));
         col += nebula(pNeb, vec2(0.62, 0.22), 0.28, vec3(0.95, 0.33, 0.07), 1.0) * 0.22;  // laranja
         col += nebula(pNeb, vec2(-0.55, 0.3), 0.22, vec3(0.45, 0.16, 0.62), 4.0) * 0.35; // roxa
         col += nebula(pNeb, vec2(0.1, -0.32), 0.25, vec3(0.12, 0.32, 0.8), 9.0) * 0.3;   // azul
@@ -359,13 +359,13 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   }
   const isSmallScreen = window.matchMedia('(max-width: 760px)').matches;
   // o neon tem pós-processamento (brilho + rastro): resolução um pouco menor para continuar leve
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, NEON ? 1.25 : 1.75));
+  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, NEON ? 1.25 : 1), NEON ? 2 : 1.75));
   renderer.setClearColor(0x000000, NEON ? 1 : 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.9;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x0B1630, 11, 24);
+  scene.fog = new THREE.Fog(0x000000, 11, 24);
   if (!NEON) {
     // Reflexos realistas: um "estúdio" de luz gerado na hora, usado só como ambiente (não aparece no fundo)
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -404,7 +404,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
     shader.uniforms.uTime = uniforms.uTime;
     const flap = `
         float side = sign(position.x);
-        float ang = (sin(uTime * (5.4 + fract(aPhase * 7.31) * 1.4) + aPhase) * 0.55 - 0.05) * side; // ritmo próprio de cada carpa
+        float ang = (sin(uTime * (2.9 + fract(aPhase * 7.31) * 0.8) + aPhase) * 0.55 - 0.05) * side; // ritmo próprio de cada carpa
         float wc = cos(ang), ws = sin(ang);`;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>
@@ -432,7 +432,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
         } else {
           // o corpo serpenteia: a onda cresce do focinho para a cauda, que esvoaça
           float amp = clamp((0.3 - position.z) / 1.25, 0.0, 1.0);
-          transformed.x += sin(position.z * 5.5 - uTime * 7.0 + aPhase) * 0.1 * pow(amp, 1.6);
+          transformed.x += sin(position.z * 5.5 - uTime * 3.6 + aPhase) * 0.1 * pow(amp, 1.6);
         }`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
@@ -521,14 +521,17 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   scene.add(mesh);
 
   // Neon: fundo de universo + rastro de luz (afterimage) + brilho (bloom)
-  let composer = null, bloom = null, space = null;
+  let composer = null, bloom = null, space = null, afterimage = null;
   if (NEON) {
     scene.fog = null;
     space = spaceBackground(uniforms.uTime);
     scene.add(space);
-    composer = new EffectComposer(renderer);
+    // MSAA 4x: sem isso as linhas finas do neon viravam pontilhado (baixa resolução)
+    const msaa = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 });
+    composer = new EffectComposer(renderer, msaa);
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new AfterimagePass(0.86));                                  // rastro: cada quadro some aos poucos
+    afterimage = new AfterimagePass(0.88);                                       // rastro: cada quadro some aos poucos
+    composer.addPass(afterimage);
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.65, 0.35, 0.32);  // força, raio, limiar
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
@@ -536,7 +539,8 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
 
   // Cardume (boids): cada peixe se alinha com os vizinhos, mantém distância e segue o grupo
   const TIGHT = Math.min(1, 0.45 + SIZE);        // peixes menores: distâncias e velocidade menores
-  const CRUISE = 2.6 * TIGHT;    // velocidade de cruzeiro
+  const CRUISE = 1.05 * TIGHT;   // velocidade de cruzeiro: ~1 comprimento de corpo por segundo (nado tranquilo)
+  const MAX_TURN = 0.85;         // aceleração máxima ao desviar: curvas largas, como um peixe de verdade
   const VIEW = 3.2 * TIGHT;      // raio de percepção dos vizinhos
   const SEP2 = 2.2 * Math.max(SIZE, 0.2); // distância mínima entre vizinhos (ao quadrado)
   // Estado de cada peixe
@@ -607,6 +611,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
   });
 
   const dummy = new THREE.Object3D();
+  const aim = new THREE.Object3D();
   const desired = new THREE.Vector3();
   const steer = new THREE.Vector3();
   const sep = new THREE.Vector3();
@@ -618,7 +623,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
     uniforms.uTime.value = t;
 
     // O cardume passeia sozinho pelo palco (mais à direita, longe do texto)
-    mouseWorld.set(halfW * 0.12 + Math.sin(t * 0.22) * halfW * 0.45, halfH * 0.18 + Math.sin(t * 0.37) * halfH * 0.35, Math.cos(t * 0.19) * 1.2);
+    mouseWorld.set(halfW * 0.12 + Math.sin(t * 0.13) * halfW * 0.45, halfH * 0.18 + Math.sin(t * 0.21) * halfH * 0.35, Math.cos(t * 0.11) * 1.2);
     // Com o mouse por perto, o centro do cardume foge dele
     if (cursorInside) {
       const dx = mouseWorld.x - cursor.x, dy = mouseWorld.y - cursor.y;
@@ -640,27 +645,30 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
       const f = fish[i];
       align.set(0, 0, 0); coh.set(0, 0, 0); sep.set(0, 0, 0);
       let n = 0;
+      const R = Math.sqrt(SEP2);
       for (let j = 0; j < COUNT; j++) {
         if (i === j) continue;
         const o = fish[j];
         const dx = f.pos.x - o.pos.x, dy = f.pos.y - o.pos.y, dz = f.pos.z - o.pos.z;
-        const d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 > VIEW * VIEW) continue;
-        n++;
-        align.add(o.vel);
-        coh.add(o.pos);
-        if (d2 < SEP2 && d2 > 1e-5) { sep.x += dx / d2; sep.y += dy / d2; sep.z += dz / d2; }
+        const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        // peso que cai suavemente com a distância: o vizinho nunca "liga e desliga" de repente (isso causava solavancos)
+        const w = 1 - THREE.MathUtils.smoothstep(d, VIEW * 0.55, VIEW);
+        if (w > 0) { n += w; align.addScaledVector(o.vel, w); coh.addScaledVector(o.pos, w); }
+        // separação limitada: cresce de forma suave ao chegar perto (antes crescia sem limite e dava trancos)
+        if (d < R && d > 1e-4) { const push = Math.pow(1 - d / R, 1.5) * 4.5 / d; sep.x += dx * push; sep.y += dy * push; sep.z += dz * push; }
       }
       steer.set(0, 0, 0);
-      if (n) {
+      if (n > 1e-3) {
         align.divideScalar(n).sub(f.vel).multiplyScalar(1.6);   // alinhamento: mesma direção dos vizinhos
         coh.divideScalar(n).sub(f.pos).multiplyScalar(0.45);     // coesão: fica perto do grupo
         steer.add(align).add(coh);
       }
-      steer.addScaledVector(sep, 1.8);                          // separação: sem trombar
+      steer.add(sep);                                           // separação: sem trombar
       // o grupo inteiro segue o "líder" invisível que passeia pelo palco
       desired.copy(target).sub(f.pos);
       steer.addScaledVector(desired, 0.32);
+
+      if (steer.length() > MAX_TURN) steer.setLength(MAX_TURN);
 
       // Predador: o cursor espanta os peixes próximos e o grupo desvia junto (pelo alinhamento)
       if (cursorInside) {
@@ -674,10 +682,12 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
       }
 
       const prevDir = look.copy(f.vel).normalize().clone();
+      const dtc = Math.max(dt, 1 / 120);
       f.vel.addScaledVector(steer, dt);
       // velocidade quase constante, como peixe de verdade (sobe só quando foge ou se espalha)
       const sp = f.vel.length();
-      const goal = THREE.MathUtils.clamp(sp, CRUISE * 0.8, CRUISE * 3.2);
+      const pace = 1 + 0.12 * Math.sin(clock.elapsedTime * 0.5 + f.phase);
+      const goal = THREE.MathUtils.clamp(sp, CRUISE * 0.8 * pace, CRUISE * 6);
       f.vel.multiplyScalar(goal / Math.max(sp, 1e-3));
       if (sp > CRUISE) f.vel.multiplyScalar(1 - Math.min(dt * 0.9, 0.3));
       f.pos.addScaledVector(f.vel, dt);
@@ -686,10 +696,15 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
       // inclina nas curvas (como um bando de pássaros), suavizado
       const dir = look.copy(f.vel).normalize();
       const turn = prevDir.x * dir.y - prevDir.y * dir.x;
-      f.bank += (THREE.MathUtils.clamp(-turn / Math.max(dt, 1e-3) * 0.35, -0.8, 0.8) - f.bank) * Math.min(dt * 4, 1);
+      f.bank += (THREE.MathUtils.clamp(-turn / dtc * 0.35, -0.8, 0.8) - f.bank) * Math.min(dt * 3, 1);
 
+      // orientação suavizada: o corpo gira acompanhando a direção, sem "virar de uma vez" quando a velocidade muda
+      aim.position.copy(f.pos);
+      aim.lookAt(look.add(f.pos));
+      if (!f.q) f.q = aim.quaternion.clone();
+      f.q.slerp(aim.quaternion, 1 - Math.exp(-dtc * 4.5));
       dummy.position.copy(f.pos);
-      dummy.lookAt(look.multiplyScalar(1).add(f.pos));
+      dummy.quaternion.copy(f.q);
       dummy.rotateZ(f.bank);
       dummy.scale.setScalar(f.scale);
       if (showcase) { dummy.position.set(0, 0, 0); dummy.rotation.set(showcase.pitch || 0, showcase.yaw || 0, 0); dummy.scale.setScalar(1); }
@@ -702,18 +717,24 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
 
   let visible = true;
   let running = false;
-  // Qualidade adaptativa: se o computador não sustentar ~45 quadros/s, baixa a resolução do palco (até 2 vezes)
-  let perfFrames = 0, perfTime = 0, perfLevel = 0;
-  const PERF_STEPS = [1, 0.75];
+  // Qualidade adaptativa: ignora os primeiros segundos (a página ainda está carregando) e só baixa a resolução
+  // se o computador ficar abaixo de ~40 quadros/s por duas medições seguidas. Nunca fica abaixo de 1x (sem borrar).
+  const PR_MAX = renderer.getPixelRatio();
+  const PERF_STEPS = [PR_MAX, Math.max(1, PR_MAX * 0.75), 1].filter((v, i, arr) => i === 0 || v < arr[i - 1]);
+  let perfLevel = 0, perfFrames = 0, perfTime = 0, perfWarm = 0, perfBad = 0;
   const adapt = (rawDt) => {
+    if (rawDt > 0.25) { perfFrames = 0; perfTime = 0; return; }       // troca de aba ou travada pontual: não conta
+    perfWarm += rawDt;
+    if (perfWarm < 6) return;                                          // aquecimento
     perfFrames++; perfTime += rawDt;
     if (perfTime < 2) return;
     const fps = perfFrames / perfTime;
     perfFrames = 0; perfTime = 0;
-    if (fps < 45 && perfLevel < PERF_STEPS.length) {
-      const pr = PERF_STEPS[perfLevel++];
-      renderer.setPixelRatio(pr);
-      if (composer) composer.setPixelRatio(pr);
+    perfBad = fps < 40 ? perfBad + 1 : 0;
+    if (perfBad >= 2 && perfLevel < PERF_STEPS.length - 1) {
+      perfBad = 0;
+      renderer.setPixelRatio(PERF_STEPS[++perfLevel]);
+      if (composer) composer.setPixelRatio(PERF_STEPS[perfLevel]);
       resize();
     }
   };
@@ -733,6 +754,7 @@ export function createSchool(canvas, { calm = false, style = 'neon', count = nul
       u.uMouse.value.lerp(bgMouse, 1 - Math.pow(0.004, dt));
       u.uWave.value = Math.max(0, 1 - (clock.elapsedTime - u.uClickT.value) / 2.5);
     }
+    if (afterimage) afterimage.uniforms['damp'].value = Math.pow(0.88, Math.min(raw, 0.05) * 60);
     if (composer) composer.render(); else renderer.render(scene, camera);
     requestAnimationFrame(loop);
   };
