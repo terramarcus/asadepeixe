@@ -1,4 +1,4 @@
-import { CONTACT, PORTFOLIO, waLink } from './data.js';
+import { CONTACT, PORTFOLIO, SITES, waLink } from './data.js';
 import { createSchool } from './school.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -242,6 +242,24 @@ renderPage(0);
 syncControls();
 preload(1);
 $('[data-work-total]').textContent = PORTFOLIO.length;
+
+/* ---------- Portfólio de sites ---------- */
+$('[data-sites]').innerHTML = SITES.map((s) => {
+  const host = new URL(s.url).hostname.replace(/^www\./, '');
+  return `
+  <li class="site" data-reveal>
+    <a class="site__link" href="${s.url}" target="_blank" rel="noopener" aria-label="Visitar o site ${s.name} (abre em nova aba)">
+      <div class="site__frame">
+        <div class="site__bar" aria-hidden="true"><i></i><i></i><i></i><span>${host}</span></div>
+        <div class="site__view"><img src="assets/sites/${s.slug}.jpg" alt="Página inicial do site ${s.name}" loading="lazy" decoding="async"></div>
+      </div>
+      <div class="site__info">
+        <span class="site__name">${s.name}</span>
+        <span class="site__go">Visitar site <span aria-hidden="true">↗</span></span>
+      </div>
+    </a>
+  </li>`;
+}).join('');
 
 /* ---------- Animações ---------- */
 document.fonts.ready.then(() => {

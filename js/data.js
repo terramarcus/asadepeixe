@@ -31,6 +31,15 @@ const file = (n) => `${String(n).padStart(2, '0')}.jpg`;
 const pick = (...nums) => nums.flatMap((n) => (Array.isArray(n) ? range(...n) : [n])).map(file);
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
+// Portfólio de sites: a imagem fica em assets/sites/<slug>.jpg (captura comprida da página inicial;
+// na vitrine ela rola ao passar o mouse). Para atualizar uma captura, refaça a imagem com o mesmo nome.
+export const SITES = [
+  { slug: 'stay-coworking',      name: 'Stay Coworking',       url: 'https://staycoworking.com.br/' },
+  { slug: 'grupo-octopus',       name: 'Grupo Octopus',        url: 'https://octopuscred.com/' },
+  { slug: 'servicos-pontual',    name: 'Serviços Pontual',     url: 'https://spservicospontual.com.br/' },
+  { slug: 'chedid-odontologica', name: 'Chedid Odontológica',  url: 'https://claudiochedidodonto.com.br/' },
+];
+
 export const PORTFOLIO = [
   // página 1
   { slug: 'icy',                  name: 'Icy',                  images: pick([1, 7]),                    cover: 2 },
