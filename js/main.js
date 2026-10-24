@@ -1,5 +1,5 @@
 import { CONTACT, PORTFOLIO, SITES, waLink } from './data.js';
-import { createSchool } from './school.js';
+import { createSchool, createSpace } from './school.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
 gsap.registerPlugin(ScrollTrigger);
@@ -56,6 +56,7 @@ onScroll();
 
 /* ---------- Cardume 3D no palco ---------- */
 createSchool($('.stage__canvas'), { calm: reduced });
+createSpace($('.numbers__space'));
 
 /* ---------- Manifesto: palavras acendem ---------- */
 {

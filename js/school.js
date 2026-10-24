@@ -271,7 +271,7 @@ function neonMaterial(uTime) {
 function spaceBackground(uTime) {
   const mat = new THREE.ShaderMaterial({
     uniforms: {
-      uTime, uAspect: { value: 1 },
+      uTime, uAspect: { value: 1 }, uBoost: { value: 1 },
       uScroll: { value: 0 },                         // 0 = topo; cresce conforme a página desce
       uMouse: { value: new THREE.Vector2(0.5, 0.5) }, // posição suavizada do mouse no palco (0–1)
       uWave: { value: 0 },                           // força da onda (dispara no clique e some aos poucos)
@@ -283,7 +283,7 @@ function spaceBackground(uTime) {
       varying vec2 vUv;
       void main() { vUv = uv; gl_Position = vec4(position.xy, 0.9999, 1.0); }`,
     fragmentShader: `
-      uniform float uTime; uniform float uAspect; uniform float uScroll; uniform vec2 uMouse; uniform float uWave; uniform vec2 uClick; uniform float uClickT;
+      uniform float uBoost; uniform float uTime; uniform float uAspect; uniform float uScroll; uniform vec2 uMouse; uniform float uWave; uniform vec2 uClick; uniform float uClickT;
       varying vec2 vUv;
       float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float noise(vec2 p) {
@@ -326,10 +326,10 @@ function spaceBackground(uTime) {
         vec2 pMid  = p + look * 0.8  + vec2(0.0, uScroll * 0.36);
         vec2 pNear = p + look * 1.2  + vec2(0.0, uScroll * 0.22);
         vec3 col = mix(vec3(0.0), vec3(0.018, 0.018, 0.02), smoothstep(1.1, 0.0, length(pFar - vec2(0.35, 0.2))));
-        col += nebula(pNeb, vec2(0.62, 0.22), 0.28, vec3(0.95, 0.33, 0.07), 1.0) * 0.22;  // laranja
-        col += nebula(pNeb, vec2(-0.55, 0.3), 0.22, vec3(0.45, 0.16, 0.62), 4.0) * 0.35; // roxa
-        col += nebula(pNeb, vec2(0.1, -0.32), 0.25, vec3(0.12, 0.32, 0.8), 9.0) * 0.3;   // azul
-        col += nebula(pNeb, vec2(-0.15, 0.38), 0.12, vec3(1.0, 0.6, 0.2), 13.0) * 0.14;  // dourada pequena
+        col += nebula(pNeb, vec2(0.62, 0.22), 0.28, vec3(0.95, 0.33, 0.07), 1.0) * 0.22 * uBoost;  // laranja
+        col += nebula(pNeb, vec2(-0.55, 0.3), 0.22, vec3(0.45, 0.16, 0.62), 4.0) * 0.35 * uBoost; // roxa
+        col += nebula(pNeb, vec2(0.1, -0.32), 0.25, vec3(0.12, 0.32, 0.8), 9.0) * 0.3 * uBoost;   // azul
+        col += nebula(pNeb, vec2(-0.15, 0.38), 0.12, vec3(1.0, 0.6, 0.2), 13.0) * 0.14 * uBoost;  // dourada pequena
         col += vec3(1.0, 0.9, 0.8) * stars(pMid + 11.0, 140.0, 0.1) * 0.6;    // médias
         col += vec3(0.9, 0.95, 1.0) * stars(pNear, 70.0, 0.12);               // próximas
         // a crista da onda acende um pouco, para o movimento ficar visível
@@ -342,6 +342,49 @@ function spaceBackground(uTime) {
   quad.frustumCulled = false;
   quad.renderOrder = -1;
   return quad;
+}
+
+// Fundo de universo sozinho (sem peixes) para outras seções: parallax conforme a seção passa pela tela
+export function createSpace(canvas) {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
+  renderer.setPixelRatio(1);
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const uTime = { value: 0 };
+  const quad = spaceBackground(uTime);
+  scene.add(quad);
+  const u = quad.material.uniforms;
+  u.uBoost.value = 2.6;
+  const mouse = new THREE.Vector2(0.5, 0.5), target = new THREE.Vector2(0.5, 0.5);
+  let visible = false;
+  const section = canvas.parentElement;
+  const resize = () => {
+    const r = section.getBoundingClientRect();
+    const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+    renderer.setSize(w, h, false); u.uAspect.value = w / h;
+  };
+  resize();
+  new ResizeObserver(resize).observe(section);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '100px' }).observe(section);
+  window.addEventListener('pointermove', (e) => {
+    const r = section.getBoundingClientRect();
+    target.set((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height);
+  }, { passive: true });
+  const clock = new THREE.Clock();
+  const loop = () => {
+    requestAnimationFrame(loop);
+    const dt = Math.min(clock.getDelta(), 1 / 30);
+    if (!visible) return;
+    uTime.value += dt;
+    const r = section.getBoundingClientRect();
+    // 0 quando a seção entra por baixo; cresce até ~1,5 conforme ela sobe e sai (efeito de profundidade)
+    u.uScroll.value = THREE.MathUtils.clamp((window.innerHeight - r.top) / (window.innerHeight + r.height) * 1.5, 0, 1.5);
+    mouse.lerp(target, 1 - Math.pow(0.004, dt));
+    u.uMouse.value.copy(mouse);
+    u.uWave.value = 0;
+    renderer.render(scene, camera);
+  };
+  loop();
 }
 
 // calm: para quem prefere movimento reduzido — o cardume nada mais devagar, mas continua vivo e reagindo ao mouse
